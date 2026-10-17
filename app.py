@@ -1,12 +1,12 @@
-# BLEU-AV V5 - PLATE-FORME DE SECURISATION 2027
+# BLEU-AV V6 - TELECHARGEMENT DIRECT 2027
 import os
-from flask import Flask, render_template_string, request, redirect
+from flask import Flask, render_template_string, request, send_file
 import sqlite3
 from datetime import datetime
+import io
 
 app = Flask(__name__)
 ADMIN_PASS = "bleu2027"
-DOWNLOAD_LINK = "https://gofile.io/d/placeholder"
 
 def get_db():
     conn = sqlite3.connect('bleu.db')
@@ -21,6 +21,10 @@ def init_db():
     conn.close()
 init_db()
 
+def get_ip():
+    # Corrige l'IP sur Render
+    return request.headers.get('X-Forwarded-For', request.remote_addr)
+
 HOME_HTML = """
 <!DOCTYPE html>
 <html>
@@ -31,7 +35,6 @@ HOME_HTML = """
 body{background:#000;color:#fff;text-align:center;font-family:Arial;padding:30px}
 .btn{background:#0055ff;color:#fff;padding:22px 45px;font-size:22px;border:none;border-radius:15px;display:inline-block;text-decoration:none;margin:25px;font-weight:bold;box-shadow:0 0 25px #0055ff}
 .sub{color:#888;margin-top:25px;font-size:14px}
-h1{font-size:28px}
 </style>
 </head>
 <body>
@@ -57,7 +60,7 @@ ADMIN_HTML = """
 @app.route('/')
 def home():
     conn = get_db()
-    conn.execute("INSERT INTO visits (ip, date) VALUES (?, ?)", (request.remote_addr, datetime.now().isoformat()))
+    conn.execute("INSERT INTO visits (ip, date) VALUES (?, ?)", (get_ip(), datetime.now().isoformat()))
     conn.commit()
     conn.close()
     return render_template_string(HOME_HTML)
@@ -65,10 +68,12 @@ def home():
 @app.route('/download')
 def download():
     conn = get_db()
-    conn.execute("INSERT INTO downloads (ip, date) VALUES (?, ?)", (request.remote_addr, datetime.now().isoformat()))
+    conn.execute("INSERT INTO downloads (ip, date) VALUES (?, ?)", (get_ip(), datetime.now().isoformat()))
     conn.commit()
     conn.close()
-    return redirect(DOWNLOAD_LINK)
+    # Crée un faux APK temporaire pour tester - tu le remplaceras après
+    dummy = io.BytesIO(b"BLEU-AV APK 2027 - REMPLACE PAR VRAI APK")
+    return send_file(dummy, as_attachment=True, download_name="Bleu-AV-2027.apk")
 
 @app.route('/admin')
 def admin():
