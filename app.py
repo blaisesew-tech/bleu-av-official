@@ -1,3 +1,4 @@
+# BLEU-AV V2 FIX 100% BATTERIE 
 from flask import Flask, request, redirect, abort
 import sqlite3, datetime, os
 
